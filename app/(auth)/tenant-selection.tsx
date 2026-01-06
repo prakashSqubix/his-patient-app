@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { TenantService } from '@/services/tenant.service';
 import { AuthService } from '@/services/auth.service';
 import { Tenant } from '@/types/database';
@@ -19,6 +20,7 @@ import { Building2 } from 'lucide-react-native';
 
 export default function TenantSelectionScreen() {
   const { user, refreshProfile } = useAuth();
+  const { updateTheme, theme } = useTheme();
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -45,6 +47,7 @@ export default function TenantSelectionScreen() {
     setSelecting(true);
     try {
       await AuthService.updateTenant(user.id, tenantId);
+      await updateTheme(tenantId);
       await refreshProfile();
       router.replace('/(tabs)/home');
     } catch (err: any) {
@@ -59,10 +62,12 @@ export default function TenantSelectionScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Select Your Facility</Text>
-        <Text style={styles.subtitle}>
+        <Text style={[styles.title, { color: theme.colors.text.primary }]}>
+          Select Your Facility
+        </Text>
+        <Text style={[styles.subtitle, { color: theme.colors.text.secondary }]}>
           Choose the clinic or care facility you want to access
         </Text>
       </View>
@@ -91,19 +96,27 @@ export default function TenantSelectionScreen() {
                   <View
                     style={[
                       styles.logoPlaceholder,
-                      { backgroundColor: item.primary_color },
+                      {
+                        backgroundColor: item.primary_color,
+                        borderRadius: theme.borderRadius.md
+                      },
                     ]}
                   >
                     <Building2 size={32} color="#ffffff" />
                   </View>
                 )}
                 <View style={styles.tenantInfo}>
-                  <Text style={styles.tenantName}>{item.name}</Text>
-                  <Text style={styles.tenantType}>
+                  <Text style={[styles.tenantName, { color: theme.colors.text.primary }]}>
+                    {item.name}
+                  </Text>
+                  <Text style={[styles.tenantType, { color: theme.colors.text.secondary }]}>
                     {item.type === 'clinic' ? 'Clinic' : 'Care Facility'}
                   </Text>
                   {item.address && (
-                    <Text style={styles.tenantAddress} numberOfLines={1}>
+                    <Text
+                      style={[styles.tenantAddress, { color: theme.colors.text.disabled }]}
+                      numberOfLines={1}
+                    >
                       {item.address}
                     </Text>
                   )}
@@ -120,7 +133,6 @@ export default function TenantSelectionScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8fafc',
   },
   header: {
     padding: 24,
@@ -130,12 +142,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#1e293b',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 14,
-    color: '#64748b',
     textAlign: 'center',
   },
   list: {
@@ -156,7 +166,6 @@ const styles = StyleSheet.create({
   logoPlaceholder: {
     width: 64,
     height: 64,
-    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -167,16 +176,13 @@ const styles = StyleSheet.create({
   tenantName: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1e293b',
     marginBottom: 4,
   },
   tenantType: {
     fontSize: 14,
-    color: '#64748b',
     marginBottom: 2,
   },
   tenantAddress: {
     fontSize: 12,
-    color: '#94a3b8',
   },
 });

@@ -1,16 +1,41 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { AlertCircle } from 'lucide-react-native';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface ErrorMessageProps {
   message: string;
 }
 
 export function ErrorMessage({ message }: ErrorMessageProps) {
+  const { theme } = useTheme();
+
   return (
-    <View style={styles.container}>
-      <AlertCircle size={20} color="#dc2626" />
-      <Text style={styles.text}>{message}</Text>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: theme.colors.error + '10',
+          padding: theme.spacing.md,
+          borderRadius: theme.borderRadius.md,
+          borderColor: theme.colors.error + '40',
+          marginBottom: theme.spacing.md,
+        },
+      ]}
+    >
+      <AlertCircle size={20} color={theme.colors.error} />
+      <Text
+        style={[
+          styles.text,
+          {
+            color: theme.colors.error,
+            fontSize: theme.typography.fontSize.sm,
+            marginLeft: theme.spacing.sm,
+          },
+        ]}
+      >
+        {message}
+      </Text>
     </View>
   );
 }
@@ -19,17 +44,9 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fef2f2',
-    padding: 12,
-    borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#fecaca',
-    marginBottom: 16,
   },
   text: {
-    color: '#dc2626',
-    fontSize: 14,
-    marginLeft: 8,
     flex: 1,
   },
 });

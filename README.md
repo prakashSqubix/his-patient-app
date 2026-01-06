@@ -22,6 +22,9 @@ A production-ready React Native mobile application for multi-tenant healthcare s
 #### 2. Appointments
 - Search doctors by specialty or name
 - View doctor profiles with ratings and experience
+- **Smart slot-based booking system** with visual time slot selection
+- Available slots organized by time period (Morning, Afternoon, Evening)
+- 7-day availability calendar with horizontal date picker
 - Book appointments with multiple encounter types (OPD, Video, Follow-up, Emergency)
 - View appointment history
 - Cancel and reschedule appointments
@@ -41,6 +44,16 @@ A production-ready React Native mobile application for multi-tenant healthcare s
 - Insurance details
 - Switch between facilities
 - Security settings
+
+### Global Theming System
+- **Dynamic tenant-based theming** with real-time switching
+- Comprehensive theme configuration (colors, typography, spacing, branding)
+- 4 pre-configured tenant themes with unique color palettes
+- Persistent theme storage with AsyncStorage
+- Automatic theme updates on tenant selection
+- Themed component library (Button, Input, Card, etc.)
+- No hardcoded colors - fully customizable per tenant
+- See [THEMING_GUIDE.md](./THEMING_GUIDE.md) for detailed documentation
 
 ## Tech Stack
 
@@ -68,29 +81,43 @@ project/
 │   │   ├── records/              # Medical records
 │   │   └── profile.tsx           # User profile
 │   └── index.tsx                 # Root navigation
-├── components/                   # Reusable UI components
+├── components/                   # Reusable UI components (themed)
 │   ├── Button.tsx
 │   ├── Input.tsx
 │   ├── Card.tsx
 │   ├── LoadingScreen.tsx
 │   └── ErrorMessage.tsx
 ├── contexts/                     # React contexts
-│   └── AuthContext.tsx           # Authentication state
+│   ├── AuthContext.tsx           # Authentication state
+│   └── ThemeContext.tsx          # Global theming
 ├── services/                     # API service layer
 │   ├── auth.service.ts
 │   ├── tenant.service.ts
 │   ├── doctor.service.ts
 │   ├── appointment.service.ts
-│   └── medical-record.service.ts
+│   ├── medical-record.service.ts
+│   ├── theme.service.ts          # Theme management with dummy data
+│   └── slots.service.ts          # Appointment slots with dummy data
 ├── lib/                          # Library configurations
 │   └── supabase.ts               # Supabase client
 ├── types/                        # TypeScript types
 │   ├── database.ts               # Database types
+│   ├── theme.ts                  # Theme types
 │   └── env.d.ts                  # Environment types
 └── hooks/                        # Custom React hooks
     └── useFrameworkReady.ts
 
 ```
+
+## Data Implementation
+
+**Current Approach**: The appointment slots and theming systems use dummy JSON data for demonstration and development.
+
+- **Slots Service**: Generates random availability for 7 days ahead
+- **Theme Service**: Provides 4 pre-configured tenant themes
+- **Easy Migration**: Services are structured to easily swap dummy data with real API calls
+
+See [SLOTS_BOOKING_GUIDE.md](./SLOTS_BOOKING_GUIDE.md) for details on the booking flow and API integration points.
 
 ## Database Schema
 

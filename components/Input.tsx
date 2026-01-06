@@ -7,6 +7,7 @@ import {
   TextInputProps,
   ViewStyle,
 } from 'react-native';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface InputProps extends TextInputProps {
   label?: string;
@@ -22,56 +23,71 @@ export function Input({
   ...props
 }: InputProps) {
   const [isFocused, setIsFocused] = useState(false);
+  const { theme } = useTheme();
 
   return (
-    <View style={[styles.container, containerStyle]}>
-      {label && <Text style={styles.label}>{label}</Text>}
+    <View style={[{ marginBottom: theme.spacing.md }, containerStyle]}>
+      {label && (
+        <Text
+          style={[
+            styles.label,
+            {
+              fontSize: theme.typography.fontSize.sm,
+              color: theme.colors.text.primary,
+              marginBottom: theme.spacing.sm,
+            },
+          ]}
+        >
+          {label}
+        </Text>
+      )}
       <TextInput
         style={[
           styles.input,
-          isFocused && styles.inputFocused,
-          error && styles.inputError,
+          {
+            borderColor: error
+              ? theme.colors.error
+              : isFocused
+              ? theme.colors.primary
+              : theme.colors.text.disabled,
+            borderRadius: theme.borderRadius.md,
+            paddingHorizontal: theme.spacing.md,
+            paddingVertical: theme.spacing.md,
+            fontSize: theme.typography.fontSize.md,
+            color: theme.colors.text.primary,
+            backgroundColor: theme.colors.surface,
+          },
           style,
         ]}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
-        placeholderTextColor="#94a3b8"
+        placeholderTextColor={theme.colors.text.disabled}
         {...props}
       />
-      {error && <Text style={styles.error}>{error}</Text>}
+      {error && (
+        <Text
+          style={[
+            styles.error,
+            {
+              color: theme.colors.error,
+              fontSize: theme.typography.fontSize.xs,
+              marginTop: theme.spacing.xs,
+            },
+          ]}
+        >
+          {error}
+        </Text>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    marginBottom: 16,
-  },
   label: {
-    fontSize: 14,
     fontWeight: '600',
-    color: '#1e293b',
-    marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#cbd5e1',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: '#1e293b',
-    backgroundColor: '#ffffff',
   },
-  inputFocused: {
-    borderColor: '#2563eb',
-  },
-  inputError: {
-    borderColor: '#dc2626',
-  },
-  error: {
-    color: '#dc2626',
-    fontSize: 12,
-    marginTop: 4,
-  },
+  error: {},
 });

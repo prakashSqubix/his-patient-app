@@ -7,6 +7,7 @@ import {
   ViewStyle,
   TextStyle,
 } from 'react-native';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface ButtonProps {
   title: string;
@@ -29,12 +30,74 @@ export function Button({
   style,
   textStyle,
 }: ButtonProps) {
+  const { theme } = useTheme();
+
+  const getButtonStyle = () => {
+    switch (variant) {
+      case 'primary':
+        return { backgroundColor: theme.colors.primary };
+      case 'secondary':
+        return { backgroundColor: theme.colors.secondary };
+      case 'outline':
+        return {
+          backgroundColor: 'transparent',
+          borderWidth: 1.5,
+          borderColor: theme.colors.primary,
+        };
+      default:
+        return { backgroundColor: theme.colors.primary };
+    }
+  };
+
+  const getTextColor = () => {
+    return variant === 'outline' ? theme.colors.primary : '#ffffff';
+  };
+
+  const getSizeStyle = () => {
+    switch (size) {
+      case 'small':
+        return {
+          paddingVertical: theme.spacing.sm,
+          paddingHorizontal: theme.spacing.md,
+        };
+      case 'medium':
+        return {
+          paddingVertical: theme.spacing.md,
+          paddingHorizontal: theme.spacing.lg,
+        };
+      case 'large':
+        return {
+          paddingVertical: theme.spacing.md + 4,
+          paddingHorizontal: theme.spacing.xl,
+        };
+      default:
+        return {
+          paddingVertical: theme.spacing.md,
+          paddingHorizontal: theme.spacing.lg,
+        };
+    }
+  };
+
+  const getTextSize = () => {
+    switch (size) {
+      case 'small':
+        return theme.typography.fontSize.sm;
+      case 'medium':
+        return theme.typography.fontSize.md;
+      case 'large':
+        return theme.typography.fontSize.lg;
+      default:
+        return theme.typography.fontSize.md;
+    }
+  };
+
   return (
     <TouchableOpacity
       style={[
         styles.button,
-        styles[variant],
-        styles[size],
+        { borderRadius: theme.borderRadius.md },
+        getButtonStyle(),
+        getSizeStyle(),
         (disabled || loading) && styles.disabled,
         style,
       ]}
@@ -43,15 +106,12 @@ export function Button({
       activeOpacity={0.7}
     >
       {loading ? (
-        <ActivityIndicator
-          color={variant === 'outline' ? '#2563eb' : '#ffffff'}
-        />
+        <ActivityIndicator color={getTextColor()} />
       ) : (
         <Text
           style={[
             styles.text,
-            styles[`${variant}Text`],
-            styles[`${size}Text`],
+            { color: getTextColor(), fontSize: getTextSize() },
             textStyle,
           ]}
         >
@@ -64,55 +124,13 @@ export function Button({
 
 const styles = StyleSheet.create({
   button: {
-    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  primary: {
-    backgroundColor: '#2563eb',
-  },
-  secondary: {
-    backgroundColor: '#64748b',
-  },
-  outline: {
-    backgroundColor: 'transparent',
-    borderWidth: 1.5,
-    borderColor: '#2563eb',
-  },
-  small: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-  },
-  medium: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-  },
-  large: {
-    paddingVertical: 16,
-    paddingHorizontal: 32,
   },
   disabled: {
     opacity: 0.5,
   },
   text: {
     fontWeight: '600',
-  },
-  primaryText: {
-    color: '#ffffff',
-  },
-  secondaryText: {
-    color: '#ffffff',
-  },
-  outlineText: {
-    color: '#2563eb',
-  },
-  smallText: {
-    fontSize: 14,
-  },
-  mediumText: {
-    fontSize: 16,
-  },
-  largeText: {
-    fontSize: 18,
   },
 });
