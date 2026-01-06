@@ -1,9 +1,6 @@
-/**
- * @format
- */
+import { AppRegistry } from 'react-native';
+import App from './src/App';
+// Using the string directly to match MainActivity if app.json is changed later
+const AppName = "health_app";
 
-import {AppRegistry} from 'react-native';
-import App from './App';
-import {name as appName} from './app.json';
-
-AppRegistry.registerComponent(appName, () => App);
+AppRegistry.registerComponent(AppName, () => App);

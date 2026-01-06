@@ -1,4 +1,10 @@
 {
-  "name": "bolt_expo_nativewind",
-  "displayName": "bolt_expo_nativewind"
+  "name": "health_app",
+  "displayName": "Health App",
+  "android": {
+    "package": "com.prakash_123.health_app"
+  },
+  "ios": {
+    "bundleIdentifier": "com.prakash-123.health-app"
+  }
 }
