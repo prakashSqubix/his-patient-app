@@ -4,10 +4,13 @@ export interface ThemeColors {
   accent: string;
   background: string;
   surface: string;
+  border: string;
   text: {
     primary: string;
     secondary: string;
     disabled: string;
+    hint: string;
+    white: string;
   };
   error: string;
   success: string;

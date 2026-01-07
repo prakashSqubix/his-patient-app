@@ -6,15 +6,18 @@ const TENANT_THEMES: Record<string, TenantThemeConfig> = {
     tenantName: 'Patient Portal',
     theme: {
       colors: {
-        primary: '#2563EB',
+        primary: '#1B78BF',
         secondary: '#10B981',
         accent: '#F59E0B',
         background: '#FFFFFF',
         surface: '#F8FAFC',
+        border: '#E2E8F0',
         text: {
-          primary: '#1E293B',
-          secondary: '#64748B',
+          primary: '#1E1E1E',
+          secondary: '#00000080',
           disabled: '#94A3B8',
+          hint: '#94A3B8',
+          white: '#ffffff',
         },
         error: '#DC2626',
         success: '#059669',
@@ -27,7 +30,7 @@ const TENANT_THEMES: Record<string, TenantThemeConfig> = {
         bannerImage: null,
       },
       typography: {
-        fontFamily: 'System',
+        fontFamily: 'Inter',
         fontSize: {
           xs: 12,
           sm: 14,
@@ -70,10 +73,13 @@ const TENANT_THEMES: Record<string, TenantThemeConfig> = {
         accent: '#F59E0B',
         background: '#FFFFFF',
         surface: '#F3F4F6',
+        border: '#E5E7EB',
         text: {
           primary: '#111827',
           secondary: '#6B7280',
           disabled: '#9CA3AF',
+          hint: '#9CA3AF',
+          white: '#ffffff',
         },
         error: '#EF4444',
         success: '#10B981',
@@ -86,7 +92,7 @@ const TENANT_THEMES: Record<string, TenantThemeConfig> = {
         bannerImage: 'https://images.pexels.com/photos/4269492/pexels-photo-4269492.jpeg?w=800',
       },
       typography: {
-        fontFamily: 'System',
+        fontFamily: 'Inter',
         fontSize: {
           xs: 12,
           sm: 14,
@@ -129,10 +135,13 @@ const TENANT_THEMES: Record<string, TenantThemeConfig> = {
         accent: '#F97316',
         background: '#FFFFFF',
         surface: '#F0FDF4',
+        border: '#D1FAE5',
         text: {
           primary: '#065F46',
           secondary: '#047857',
           disabled: '#A7F3D0',
+          hint: '#A7F3D0',
+          white: '#ffffff',
         },
         error: '#DC2626',
         success: '#10B981',
@@ -145,7 +154,7 @@ const TENANT_THEMES: Record<string, TenantThemeConfig> = {
         bannerImage: 'https://images.pexels.com/photos/668300/pexels-photo-668300.jpeg?w=800',
       },
       typography: {
-        fontFamily: 'System',
+        fontFamily: 'Inter',
         fontSize: {
           xs: 12,
           sm: 14,
@@ -188,10 +197,13 @@ const TENANT_THEMES: Record<string, TenantThemeConfig> = {
         accent: '#FBBF24',
         background: '#FFFFFF',
         surface: '#FAF5FF',
+        border: '#E9D5FF',
         text: {
           primary: '#581C87',
           secondary: '#7C3AED',
           disabled: '#C4B5FD',
+          hint: '#C4B5FD',
+          white: '#ffffff',
         },
         error: '#DC2626',
         success: '#10B981',
@@ -204,7 +216,7 @@ const TENANT_THEMES: Record<string, TenantThemeConfig> = {
         bannerImage: 'https://images.pexels.com/photos/4226140/pexels-photo-4226140.jpeg?w=800',
       },
       typography: {
-        fontFamily: 'System',
+        fontFamily: 'Inter',
         fontSize: {
           xs: 12,
           sm: 14,

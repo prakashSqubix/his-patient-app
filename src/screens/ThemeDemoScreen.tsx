@@ -7,10 +7,12 @@ import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import { ArrowLeft, Palette } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export function ThemeDemoScreen() {
   const navigation = useNavigation();
   const { theme, tenantConfig, updateTheme } = useTheme();
+  const insets = useSafeAreaInsets();
 
   const testTenants = ['clinic_001', 'clinic_002', 'clinic_003', 'default'];
 
@@ -20,6 +22,7 @@ export function ThemeDemoScreen() {
         style={[
           styles.header,
           {
+            paddingTop: insets.top + 24,
             backgroundColor: theme.colors.surface,
             borderBottomColor: theme.colors.text.disabled + '40',
           },

@@ -20,6 +20,7 @@ import { Button } from '@/components/Button';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import { Input } from '@/components/Input';
 import { ArrowLeft, Calendar as CalendarIcon } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const ENCOUNTER_TYPES: EncounterType[] = [
   'OPD',
@@ -44,6 +45,7 @@ export default function BookAppointmentScreen() {
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [booking, setBooking] = useState(false);
   const [error, setError] = useState('');
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     loadDoctor();
@@ -148,7 +150,7 @@ export default function BookAppointmentScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <View style={[styles.header, { backgroundColor: theme.colors.surface, borderBottomColor: theme.colors.text.disabled + '40' }]}>
+      <View style={[styles.header, { paddingTop: insets.top + 24, backgroundColor: theme.colors.surface, borderBottomColor: theme.colors.text.disabled + '40' }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <ArrowLeft size={24} color={theme.colors.text.primary} />
         </TouchableOpacity>

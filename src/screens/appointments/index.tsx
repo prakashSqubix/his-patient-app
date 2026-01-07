@@ -16,6 +16,7 @@ import { LoadingScreen } from '@/components/LoadingScreen';
 import { Button } from '@/components/Button';
 import { Calendar, Clock, MapPin, Plus } from 'lucide-react-native';
 import { Theme } from '@/types/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function AppointmentsScreen() {
   const navigation = useNavigation<any>();
@@ -23,6 +24,7 @@ export default function AppointmentsScreen() {
   const { theme } = useTheme();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
+  const insets = useSafeAreaInsets();
 
   const styles = getStyles(theme);
 
@@ -73,7 +75,7 @@ export default function AppointmentsScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + theme.spacing.xs }]}>
         <Text style={styles.title}>Appointments</Text>
         <TouchableOpacity
           style={styles.addButton}

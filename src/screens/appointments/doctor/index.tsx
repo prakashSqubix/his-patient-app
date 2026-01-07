@@ -14,6 +14,7 @@ import { Card } from '@/components/Card';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { Button } from '@/components/Button';
 import { ArrowLeft, Star, Calendar, DollarSign } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function DoctorProfileScreen() {
   const navigation = useNavigation<any>();
@@ -21,6 +22,7 @@ export default function DoctorProfileScreen() {
   const { id } = route.params || {};
   const [doctor, setDoctor] = useState<DoctorWithSpecialties | null>(null);
   const [loading, setLoading] = useState(true);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     loadDoctor();
@@ -53,7 +55,7 @@ export default function DoctorProfileScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 24 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <ArrowLeft size={24} color="#1e293b" />
         </TouchableOpacity>

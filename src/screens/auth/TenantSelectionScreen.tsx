@@ -18,6 +18,7 @@ import { LoadingScreen } from '@/components/LoadingScreen';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import { Building2 } from 'lucide-react-native';
 import { Theme } from '@/types/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TenantSelectionScreen() {
   const navigation = useNavigation<any>();
@@ -27,7 +28,7 @@ export default function TenantSelectionScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selecting, setSelecting] = useState(false);
-
+  const insets = useSafeAreaInsets();
   const styles = getStyles(theme);
 
   useEffect(() => {
@@ -67,7 +68,7 @@ export default function TenantSelectionScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + theme.spacing.xs }]}>
         <Text style={styles.title}>
           Select Your Facility
         </Text>

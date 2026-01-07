@@ -6,6 +6,7 @@ import { MedicalRecord, LabReport } from '@/types/database';
 import { Card } from '@/components/Card';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { ArrowLeft, FileText, Calendar, User, Activity, TestTube } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function RecordDetailsScreen() {
     const navigation = useNavigation<any>();
@@ -13,6 +14,7 @@ export default function RecordDetailsScreen() {
     const { id, type } = route.params || {};
     const [record, setRecord] = useState<MedicalRecord | LabReport | null>(null);
     const [loading, setLoading] = useState(true);
+    const insets = useSafeAreaInsets();
 
     useEffect(() => {
         loadData();
@@ -51,7 +53,7 @@ export default function RecordDetailsScreen() {
 
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: insets.top + 24 }]}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                     <ArrowLeft size={24} color="#1e293b" />
                 </TouchableOpacity>

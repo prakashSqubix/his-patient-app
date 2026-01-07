@@ -26,12 +26,14 @@ import {
   FileText,
 } from 'lucide-react-native';
 import { Theme } from '@/types/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ProfileScreen() {
   const navigation = useNavigation<any>();
   const { profile, user, signOut } = useAuth();
   const { theme } = useTheme();
   const [loading, setLoading] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const styles = getStyles(theme);
 
@@ -58,7 +60,7 @@ export default function ProfileScreen() {
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + theme.spacing.xs }]}>
         <Text style={styles.title}>Profile</Text>
       </View>
 

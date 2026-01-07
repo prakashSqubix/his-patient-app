@@ -26,6 +26,7 @@ import {
   User,
 } from 'lucide-react-native';
 import { Theme } from '@/types/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
@@ -38,6 +39,7 @@ export default function HomeScreen() {
     Appointment[]
   >([]);
   const [loading, setLoading] = useState(true);
+  const insets = useSafeAreaInsets();
 
   const styles = getStyles(theme);
 
@@ -119,7 +121,7 @@ export default function HomeScreen() {
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + theme.spacing.xs }]}>
         <View>
           <Text style={styles.greeting}>Hello,</Text>
           <Text style={styles.userName}>

@@ -15,11 +15,13 @@ import { Input } from '@/components/Input';
 import { Button } from '@/components/Button';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import { Theme } from '@/types/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function SignupScreen() {
   const navigation = useNavigation<any>();
   const { signUp } = useAuth();
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -87,7 +89,7 @@ export default function SignupScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + theme.spacing.xs }]}
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.header}>
