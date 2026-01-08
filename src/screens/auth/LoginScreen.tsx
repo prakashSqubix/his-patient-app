@@ -16,6 +16,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Theme } from '@/types/theme';
 import { Eye, EyeOff, ChevronDown, CheckSquare, Square } from 'lucide-react-native';
+import { useLoginMutation } from '@/hooks/useAuth';
+import { storageService } from '@/utils/storage';
 
 const getScreenDimensions = () => {
   const { width, height } = Dimensions.get('window');
@@ -39,6 +41,7 @@ export default function LoginScreen() {
   const navigation = useNavigation<any>();
   const { signIn } = useAuth();
   const { theme } = useTheme();
+  const loginMutation = useLoginMutation();
 
   const passwordInputRef = useRef<TextInput>(null);
   const [screenData, setScreenData] = useState(getScreenDimensions());
@@ -47,12 +50,12 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [phoneError, setPhoneError] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
   const styles = getStyles(theme, screenData);
+  const loading = loginMutation.isPending;
 
   // Handle orientation changes
   useEffect(() => {
@@ -67,6 +70,23 @@ export default function LoginScreen() {
     });
 
     return () => subscription?.remove();
+  }, []);
+
+  // Load remembered phone number
+  useEffect(() => {
+    const loadRememberedPhone = async () => {
+      try {
+        const rememberedPhone = await storageService.getPhoneNumber();
+        if (rememberedPhone) {
+          setPhoneNumber(rememberedPhone);
+          setRememberMe(true);
+        }
+      } catch (error) {
+        console.error('Error loading remembered phone:', error);
+      }
+    };
+
+    loadRememberedPhone();
   }, []);
 
   // Validate phone number (Indian format: 10 digits)
@@ -136,21 +156,74 @@ export default function LoginScreen() {
       return;
     }
 
-    setLoading(true);
-
     try {
-      // TODO: In production, send OTP to phone number via API
-      // For now, simulate sending OTP
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Navigate to OTP verification screen
-      navigation.navigate('OTPVerification', {
-        phoneNumber: phoneNumber,
+      console.log('Logging in with phone:', phoneNumber);
+      
+      // Call the login API
+      const response = await loginMutation.mutateAsync({
+        phone: phoneNumber,
+        password: password,
       });
+
+      console.log('Login API Response:', response);
+
+      // Check if login was successful
+      if (response.statusCode === 200) {
+        // Store the access token and user data
+        const { accessToken, _id, phone, status, createdAt, updatedAt } = response.data;
+        
+        console.log('Login successful:', {
+          userId: _id,
+          phone: phone,
+          status: status,
+          tokenReceived: !!accessToken
+        });
+
+        // Store token and user data in secure storage
+        await storageService.setAccessToken(accessToken);
+        await storageService.setUserData({
+          _id,
+          phone,
+          status,
+          createdAt,
+          updatedAt,
+        });
+
+        // Store phone number if remember me is checked
+        if (rememberMe) {
+          await storageService.setPhoneNumber(phoneNumber);
+        }
+
+        // After successful login, sign in the user
+        await signIn(phoneNumber, password);
+        
+        // Navigation to home is handled by AppNavigator observing auth state
+      } else {
+        // Handle different error status codes
+        let errorMessage = response.message || 'Login failed. Please try again.';
+        
+        switch (response.statusCode) {
+          case 400:
+            errorMessage = 'Invalid phone number or password format.';
+            break;
+          case 401:
+            errorMessage = 'Invalid phone number or password.';
+            break;
+          case 404:
+            errorMessage = 'Account not found. Please sign up first.';
+            break;
+          case 429:
+            errorMessage = 'Too many login attempts. Please try again later.';
+            break;
+          default:
+            errorMessage = response.message || 'Login failed. Please try again.';
+        }
+        
+        setError(errorMessage);
+      }
     } catch (err: any) {
-      setError(err.message || 'Failed to send OTP. Please try again.');
-    } finally {
-      setLoading(false);
+      console.error('Login API Error:', err);
+      setError(err.message || 'Login failed. Please try again.');
     }
   };
 
@@ -274,7 +347,7 @@ export default function LoginScreen() {
                   <Text style={styles.rememberMeText}>Remember me</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity>
+                <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
                   <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
                 </TouchableOpacity>
               </View>

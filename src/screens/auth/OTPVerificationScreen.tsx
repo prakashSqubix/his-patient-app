@@ -15,11 +15,14 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Theme } from '@/types/theme';
 import { ArrowLeft } from 'lucide-react-native';
+import { useSignupMutation, useVerifyOtpMutation } from '@/hooks/useAuth';
 
 const { width } = Dimensions.get('window');
 
 interface RouteParams {
     phoneNumber: string;
+    isSignup?: boolean;
+    otp?: string;
 }
 
 export default function OTPVerificationScreen() {
@@ -27,16 +30,22 @@ export default function OTPVerificationScreen() {
     const route = useRoute();
     const { theme } = useTheme();
     const { signIn } = useAuth();
+    const signupMutation = useSignupMutation();
+    const verifyOtpMutation = useVerifyOtpMutation();
 
     const params = route.params as RouteParams;
     const phoneNumber = params?.phoneNumber || '';
+    const isSignup = params?.isSignup || false;
+    const receivedOtp = params?.otp || '';
 
     // OTP state - 6 separate digits
     const [otp, setOtp] = useState<string[]>(['', '', '', '', '', '']);
-    const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [resendTimer, setResendTimer] = useState(30);
     const [canResend, setCanResend] = useState(false);
+
+    // Loading state from mutations
+    const loading = verifyOtpMutation.isPending;
 
     // Refs for each input
     const inputRefs = useRef<(TextInput | null)[]>([]);
@@ -54,6 +63,19 @@ export default function OTPVerificationScreen() {
             setCanResend(true);
         }
     }, [resendTimer]);
+
+    // Auto-fill OTP effect
+    useEffect(() => {
+        if (receivedOtp && receivedOtp.length === 6) {
+            console.log('Auto-filling OTP:', receivedOtp);
+            const otpArray = receivedOtp.split('');
+            setOtp(otpArray);
+            // Auto-verify after a short delay to show the filled OTP
+            setTimeout(() => {
+                handleVerify(receivedOtp);
+            }, 500);
+        }
+    }, [receivedOtp]);
 
     const handleOtpChange = (value: string, index: number) => {
         // Only allow single digit
@@ -98,38 +120,91 @@ export default function OTPVerificationScreen() {
         }
 
         setError('');
-        setLoading(true);
 
         try {
-            // TODO: Replace with actual OTP verification API call
-            // Verify OTP with backend first
-            await new Promise((resolve) => setTimeout(resolve, 1500));
+            console.log('Verifying OTP:', { phone: phoneNumber, otp: otpToVerify });
+            
+            // Call the OTP verification API
+            const response = await verifyOtpMutation.mutateAsync({
+                phone: phoneNumber,
+                otp: otpToVerify,
+            });
 
-            // After successful OTP verification, sign in the user
-            // The AuthContext will handle navigation to home automatically
-            await signIn(phoneNumber, otpToVerify);
+            console.log('OTP Verification Response:', response);
 
-            // Navigation to home is handled by AppNavigator observing auth state
+            // Check if verification was successful based on statusCode
+            if (response.statusCode === 200) {
+                if (isSignup) {
+                    // For signup flow, navigate to password setup after OTP verification
+                    navigation.navigate('SetPassword', {
+                        phoneNumber: phoneNumber,
+                        otpVerified: true,
+                    });
+                } else {
+                    // For login flow, sign in the user
+                    await signIn(phoneNumber, otpToVerify);
+                }
+            } else {
+                // Handle different error status codes
+                let errorMessage = response.message || 'OTP verification failed. Please try again.';
+                
+                switch (response.statusCode) {
+                    case 400:
+                        errorMessage = 'Invalid OTP format. Please check and try again.';
+                        break;
+                    case 401:
+                        errorMessage = 'Invalid or expired OTP. Please try again.';
+                        break;
+                    case 429:
+                        errorMessage = 'Too many attempts. Please wait before trying again.';
+                        break;
+                    default:
+                        errorMessage = response.message || 'OTP verification failed. Please try again.';
+                }
+                
+                setError(errorMessage);
+            }
         } catch (err: any) {
+            console.error('OTP Verification Error:', err);
             setError(err.message || 'Invalid OTP. Please try again.');
-        } finally {
-            setLoading(false);
         }
     };
 
     const handleResend = async () => {
-        if (!canResend) return;
+        if (!canResend || signupMutation.isPending) return;
 
         setCanResend(false);
         setResendTimer(30);
         setError('');
 
         try {
-            // TODO: Replace with actual resend OTP API call
-            await new Promise((resolve) => setTimeout(resolve, 500));
-            // Show success feedback
+            console.log('Resending OTP for phone:', phoneNumber);
+            const response = await signupMutation.mutateAsync({
+                phone: phoneNumber,
+            });
+
+            console.log('Resend OTP Response:', response);
+
+            // Check if resend was successful
+            if (response.statusCode === 200) {
+                // Auto-fill the new OTP
+                if (response.data.otp && response.data.otp.length === 6) {
+                    const otpArray = response.data.otp.split('');
+                    setOtp(otpArray);
+                    console.log('Auto-filled new OTP:', response.data.otp);
+                }
+            } else {
+                setError(response.message || 'Failed to resend OTP. Please try again.');
+                // Reset timer on error so user can try again
+                setCanResend(true);
+                setResendTimer(0);
+            }
         } catch (err: any) {
-            setError('Failed to resend OTP. Please try again.');
+            console.error('Resend OTP Error:', err);
+            setError(err.message || 'Failed to resend OTP. Please try again.');
+            // Reset timer on error so user can try again
+            setCanResend(true);
+            setResendTimer(0);
         }
     };
 
@@ -138,7 +213,11 @@ export default function OTPVerificationScreen() {
     };
 
     const handleBackToLogin = () => {
-        navigation.navigate('Login');
+        if (isSignup) {
+            navigation.navigate('Signup');
+        } else {
+            navigation.navigate('Login');
+        }
     };
 
     return (
@@ -204,8 +283,10 @@ export default function OTPVerificationScreen() {
                 <View style={styles.resendContainer}>
                     <Text style={styles.resendText}>Didn't receive the OTP? </Text>
                     {canResend ? (
-                        <TouchableOpacity onPress={handleResend} disabled={loading}>
-                            <Text style={styles.resendLink}>Resend SMS</Text>
+                        <TouchableOpacity onPress={handleResend} disabled={loading || signupMutation.isPending}>
+                            <Text style={styles.resendLink}>
+                                {signupMutation.isPending ? 'Sending...' : 'Resend SMS'}
+                            </Text>
                         </TouchableOpacity>
                     ) : (
                         <Text style={styles.resendTimer}>Resend SMS in {resendTimer}s</Text>
@@ -218,7 +299,9 @@ export default function OTPVerificationScreen() {
                     style={styles.backToLoginContainer}
                     disabled={loading}
                 >
-                    <Text style={styles.backToLoginText}>Go back to login methods</Text>
+                    <Text style={styles.backToLoginText}>
+                        {isSignup ? 'Go back to signup' : 'Go back to login methods'}
+                    </Text>
                 </TouchableOpacity>
 
                 {/* Verify Button */}
