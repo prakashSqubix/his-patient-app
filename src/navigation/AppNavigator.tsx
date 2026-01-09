@@ -5,12 +5,27 @@ import { TabNavigator } from './TabNavigator';
 import { ThemeDemoScreen } from '../screens/ThemeDemoScreen';
 import TenantSelectionScreen from '../screens/auth/TenantSelectionScreen';
 import { useAuth } from '../contexts/AuthContext';
+import { useReduxAuth } from '../hooks/useReduxAuth';
 import { ActivityIndicator, View } from 'react-native';
 
 const Stack = createNativeStackNavigator();
 
 export function AppNavigator() {
-    const { session, loading } = useAuth();
+    const { session, loading: contextLoading } = useAuth(); // Keep for backward compatibility
+    const reduxAuth = useReduxAuth();
+
+    // Use Redux auth state as primary, fallback to context
+    const isAuthenticated = reduxAuth.isAuthenticated || !!session;
+    const loading = reduxAuth.isLoading || contextLoading;
+
+    console.log('AppNavigator - Auth State:', {
+        reduxAuthenticated: reduxAuth.isAuthenticated,
+        reduxUser: !!reduxAuth.user,
+        reduxToken: !!reduxAuth.accessToken,
+        contextSession: !!session,
+        isAuthenticated,
+        loading,
+    });
 
     if (loading) {
         return (
@@ -23,7 +38,7 @@ export function AppNavigator() {
     return (
         <NavigationContainer>
             <Stack.Navigator screenOptions={{ headerShown: false }}>
-                {!session ? (
+                {!isAuthenticated ? (
                     <Stack.Screen name="Auth" component={AuthNavigator} />
                 ) : (
                     <>

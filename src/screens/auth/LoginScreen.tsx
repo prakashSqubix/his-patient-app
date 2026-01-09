@@ -18,6 +18,7 @@ import { Theme } from '@/types/theme';
 import { Eye, EyeOff, ChevronDown, CheckSquare, Square } from 'lucide-react-native';
 import { useLoginMutation } from '@/hooks/useAuth';
 import { storageService } from '@/utils/storage';
+import { useReduxAuth } from '@/hooks/useReduxAuth';
 
 const getScreenDimensions = () => {
   const { width, height } = Dimensions.get('window');
@@ -39,9 +40,9 @@ const IndiaFlag = () => (
 
 export default function LoginScreen() {
   const navigation = useNavigation<any>();
-  const { signIn } = useAuth();
+  const { signIn } = useAuth(); // Keep for compatibility, but we'll use Redux
   const { theme } = useTheme();
-  const loginMutation = useLoginMutation();
+  const reduxAuth = useReduxAuth();
 
   const passwordInputRef = useRef<TextInput>(null);
   const [screenData, setScreenData] = useState(getScreenDimensions());
@@ -55,7 +56,7 @@ export default function LoginScreen() {
   const [passwordError, setPasswordError] = useState('');
 
   const styles = getStyles(theme, screenData);
-  const loading = loginMutation.isPending;
+  const loading = reduxAuth.isLoading;
 
   // Handle orientation changes
   useEffect(() => {
@@ -76,6 +77,14 @@ export default function LoginScreen() {
   useEffect(() => {
     const loadRememberedPhone = async () => {
       try {
+        // First check Redux state
+        if (reduxAuth.rememberedPhone) {
+          setPhoneNumber(reduxAuth.rememberedPhone);
+          setRememberMe(reduxAuth.rememberMe);
+          return;
+        }
+
+        // Fallback to AsyncStorage
         const rememberedPhone = await storageService.getPhoneNumber();
         if (rememberedPhone) {
           setPhoneNumber(rememberedPhone);
@@ -87,7 +96,7 @@ export default function LoginScreen() {
     };
 
     loadRememberedPhone();
-  }, []);
+  }, [reduxAuth.rememberedPhone, reduxAuth.rememberMe]);
 
   // Validate phone number (Indian format: 10 digits)
   const validatePhoneNumber = (phone: string): boolean => {
@@ -159,70 +168,22 @@ export default function LoginScreen() {
     try {
       console.log('Logging in with phone:', phoneNumber);
       
-      // Call the login API
-      const response = await loginMutation.mutateAsync({
-        phone: phoneNumber,
-        password: password,
-      });
+      // Use Redux auth for login
+      const result = await reduxAuth.signIn(phoneNumber, password, rememberMe);
 
-      console.log('Login API Response:', response);
-
-      // Check if login was successful
-      if (response.statusCode === 200) {
-        // Store the access token and user data
-        const { accessToken, _id, phone, status, createdAt, updatedAt } = response.data;
-        
-        console.log('Login successful:', {
-          userId: _id,
-          phone: phone,
-          status: status,
-          tokenReceived: !!accessToken
+      if (result.success) {
+        console.log('Login successful via Redux');
+        console.log('Current Redux auth state:', {
+          isAuthenticated: reduxAuth.isAuthenticated,
+          user: reduxAuth.user,
+          accessToken: !!reduxAuth.accessToken,
         });
-
-        // Store token and user data in secure storage
-        await storageService.setAccessToken(accessToken);
-        await storageService.setUserData({
-          _id,
-          phone,
-          status,
-          createdAt,
-          updatedAt,
-        });
-
-        // Store phone number if remember me is checked
-        if (rememberMe) {
-          await storageService.setPhoneNumber(phoneNumber);
-        }
-
-        // After successful login, sign in the user
-        await signIn(phoneNumber, password);
-        
         // Navigation to home is handled by AppNavigator observing auth state
       } else {
-        // Handle different error status codes
-        let errorMessage = response.message || 'Login failed. Please try again.';
-        
-        switch (response.statusCode) {
-          case 400:
-            errorMessage = 'Invalid phone number or password format.';
-            break;
-          case 401:
-            errorMessage = 'Invalid phone number or password.';
-            break;
-          case 404:
-            errorMessage = 'Account not found. Please sign up first.';
-            break;
-          case 429:
-            errorMessage = 'Too many login attempts. Please try again later.';
-            break;
-          default:
-            errorMessage = response.message || 'Login failed. Please try again.';
-        }
-        
-        setError(errorMessage);
+        setError(result.error || 'Login failed. Please try again.');
       }
     } catch (err: any) {
-      console.error('Login API Error:', err);
+      console.error('Login Error:', err);
       setError(err.message || 'Login failed. Please try again.');
     }
   };

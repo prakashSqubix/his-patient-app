@@ -1,7 +1,7 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Home, Calendar, FileText, User } from 'lucide-react-native';
 import HomeScreen from '../screens/tabs/HomeScreen';
-import ProfileScreen from '../screens/tabs/ProfileScreen';
+import ProfileScreen from '../screens/ProfileScreen'; // Use the new ProfileScreen
 import { AppointmentNavigator } from './AppointmentNavigator';
 import { RecordsNavigator } from './RecordsNavigator';
 

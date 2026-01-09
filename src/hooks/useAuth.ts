@@ -9,6 +9,8 @@ import {
   CreatePasswordResponse,
   LoginRequest,
   LoginResponse,
+  RefreshTokenResponse,
+  LogoutResponse,
   ApiError 
 } from '@/services/api';
 
@@ -44,6 +46,24 @@ export const useLoginMutation = () => {
     mutationFn: (data: LoginRequest) => apiService.login(data),
     onError: (error) => {
       console.error('Login error:', error);
+    },
+  });
+};
+
+export const useRefreshTokenMutation = () => {
+  return useMutation<RefreshTokenResponse, ApiError, void>({
+    mutationFn: () => apiService.refreshToken(),
+    onError: (error) => {
+      console.error('Refresh token error:', error);
+    },
+  });
+};
+
+export const useLogoutMutation = () => {
+  return useMutation<LogoutResponse, ApiError, void>({
+    mutationFn: () => apiService.logout(),
+    onError: (error) => {
+      console.error('Logout error:', error);
     },
   });
 };

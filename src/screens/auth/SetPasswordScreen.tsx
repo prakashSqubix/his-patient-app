@@ -17,6 +17,7 @@ import { Theme } from '@/types/theme';
 import { Eye, EyeOff, ChevronLeft } from 'lucide-react-native';
 import { useCreatePasswordMutation } from '@/hooks/useAuth';
 import { storageService } from '@/utils/storage';
+import { useReduxAuth } from '@/hooks/useReduxAuth';
 
 const getScreenDimensions = () => {
   const { width, height } = Dimensions.get('window');
@@ -34,8 +35,9 @@ export default function SetPasswordScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute();
   const { theme } = useTheme();
-  const { signIn } = useAuth();
+  const { signIn } = useAuth(); // Keep for compatibility
   const createPasswordMutation = useCreatePasswordMutation();
+  const reduxAuth = useReduxAuth();
 
   const params = route.params as RouteParams;
   const phoneNumber = params?.phoneNumber || '';
@@ -150,9 +152,15 @@ export default function SetPasswordScreen() {
 
       // Check if password creation was successful
       if (response.statusCode === 200) {
-        // After successful password creation, sign in the user
-        await signIn(phoneNumber, password);
-        // Navigation to home is handled by AppNavigator observing auth state
+        // After successful password creation, sign in the user using Redux
+        const loginResult = await reduxAuth.signIn(phoneNumber, password, false);
+        
+        if (loginResult.success) {
+          console.log('Signup completed and user signed in via Redux');
+          // Navigation to home is handled by AppNavigator observing auth state
+        } else {
+          setError(loginResult.error || 'Password created but login failed. Please try logging in manually.');
+        }
       } else {
         // Handle different error status codes
         let errorMessage = response.message || 'Failed to create password. Please try again.';

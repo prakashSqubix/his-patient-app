@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '@/contexts/AuthContext';
+import { useReduxAuth } from '@/hooks/useReduxAuth';
 import { useTheme } from '@/contexts/ThemeContext';
 import { TenantService } from '@/services/tenant.service';
 import { AppointmentService } from '@/services/appointment.service';
@@ -32,7 +33,8 @@ const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
   const navigation = useNavigation<any>();
-  const { profile, user } = useAuth();
+  const { profile, user } = useAuth(); // Keep for backward compatibility
+  const reduxAuth = useReduxAuth();
   const { theme } = useTheme();
   const [banners, setBanners] = useState<Banner[]>([]);
   const [upcomingAppointments, setUpcomingAppointments] = useState<
@@ -42,6 +44,17 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
 
   const styles = getStyles(theme);
+
+  // Use Redux user data as primary, fallback to context
+  const currentUser = reduxAuth.user || user;
+  const currentProfile = profile; // Profile might still come from context
+
+  console.log('HomeScreen - User Data:', {
+    reduxUser: reduxAuth.user,
+    contextUser: user,
+    currentUser,
+    profile: currentProfile,
+  });
 
   const QUICK_ACTIONS = [
     {
@@ -77,17 +90,18 @@ export default function HomeScreen() {
 
   useEffect(() => {
     loadData();
-  }, [profile?.tenant_id, user?.id]);
+  }, [currentProfile?.tenant_id, currentUser?.id]);
 
   const loadData = async () => {
     try {
-      if (profile?.tenant_id) {
-        // const bannersData = await TenantService.getBanners(profile.tenant_id);
+      if (currentProfile?.tenant_id) {
+        // const bannersData = await TenantService.getBanners(currentProfile.tenant_id);
         setBanners([1, 2, 2, 2] as any);
       }
 
-      if (user?.id) {
-        const appointments = await AppointmentService.getUpcoming(user.id);
+      if (currentUser?.id || currentUser?._id) {
+        const userId = currentUser.id || currentUser._id;
+        const appointments = await AppointmentService.getUpcoming(userId);
         setUpcomingAppointments(appointments.slice(0, 3));
       }
     } catch (error) {
@@ -125,7 +139,7 @@ export default function HomeScreen() {
         <View>
           <Text style={styles.greeting}>Hello,</Text>
           <Text style={styles.userName}>
-            {profile?.first_name} {profile?.last_name}
+            {currentProfile?.first_name || currentUser?.phone || 'User'} {currentProfile?.last_name || ''}
           </Text>
         </View>
         <View style={styles.headerRight}>
